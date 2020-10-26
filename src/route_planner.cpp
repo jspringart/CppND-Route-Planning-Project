@@ -105,6 +105,7 @@ void RoutePlanner::AStarSearch() {
     // TODO: Implement your solution here.
     current_node = start_node;
     current_node->h_value = CalculateHValue(start_node);
+    current_node->g_value = current_node->g_value + distance;
     current_node->visited = true;
     //open_list.push_back(current_node);
     AddNeighbors(current_node);
