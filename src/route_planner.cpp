@@ -44,7 +44,7 @@ void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
 }
 
 bool Compare(const RouteModel::Node *a, const RouteModel::Node *b) {
-    return (a->g_value + a->h_value) < (b->g_value + b->h_value);
+    return (a->g_value + a->h_value) > (b->g_value + b->h_value);
 }
 
 
@@ -57,9 +57,9 @@ bool Compare(const RouteModel::Node *a, const RouteModel::Node *b) {
 
 RouteModel::Node *RoutePlanner::NextNode() {
     std::sort(open_list.begin(), open_list.end(), Compare);
-    auto current = open_list.front();
+    auto current = open_list.back();
     
-    open_list.erase(open_list.begin());
+    open_list.pop_back();
     return current;
 }
 
@@ -79,13 +79,14 @@ std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node 
 
     // TODO: Implement your solution here.
     RouteModel::Node *temp_node = current_node;
-    while(temp_node->parent != nullptr) {
-        distance += temp_node->distance(*temp_node->parent);
+    while(temp_node != nullptr) {
+        if (temp_node->parent != nullptr) {
+            distance += temp_node->distance(*temp_node->parent);
+        }        
         path_found.insert(path_found.begin(), *temp_node);
         temp_node = temp_node->parent;
     }
 
-    path_found.insert(path_found.begin(), *temp_node);
     distance *= m_Model.MetricScale(); // Multiply the distance by the scale of the map to get meters.
     return path_found;
 }
@@ -111,19 +112,11 @@ void RoutePlanner::AStarSearch() {
     while (open_list.size() > 0) {
         current_node = NextNode();
 
-        if (current_node->distance(*end_node) == 0) {
+        if (current_node->x == end_node->x && current_node->y == end_node->y) {
             m_Model.path = ConstructFinalPath(current_node);
             return;
         }
 
         AddNeighbors(current_node);
-    }
-}
-
-void print_debug_data(RouteModel::Node* current_node) {
-    RouteModel::Node* temp_node = current_node;
-    while (temp_node != NULL) {
-        std::cout << temp_node->x << std::endl;
-        temp_node = temp_node->parent;
     }
 }
